@@ -1,38 +1,38 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-
-export interface Billing {
-    productCode: string;
-    location: string;
-    premiumPaid: number;
-}
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, ILike } from 'typeorm';
+import { Billing } from './entities/billing.entity';
+import { CreateBillingDto } from './dto/create-billing.dto';
+import { UpdateBillingDto } from './dto/update-billing.dto';
 
 @Injectable()
 export class BillingService {
-    private billings: Billing[] = [];
+    constructor(
+        @InjectRepository(Billing)
+        private billingRepo: Repository<Billing>,
+    ) {}
 
-    findAll(productCode?: string, location?: string): Billing[] {
-        return this.billings.filter(
-            (b) =>
-                (!productCode || b.productCode === productCode) &&
-                (!location || b.location === location),
-        );
+    async findAll(productCode?: string, location?: string): Promise<Billing[]> {
+        const where = {};
+        if (productCode) Object.assign(where, { productCode: ILike(productCode) });
+        if (location) Object.assign(where, { location: ILike(location) });
+        return this.billingRepo.find({ where });
     }
 
-    create(data: Billing): Billing {
-        this.billings.push(data);
-        return data;
+    async create(dto: CreateBillingDto): Promise<Billing> {
+        const billing = this.billingRepo.create(dto);
+        return this.billingRepo.save(billing);
     }
 
-    update(productCode: string, data: Partial<Billing>): Billing {
-        const billing = this.billings.find((b) => b.productCode === productCode);
-        if (!billing) throw new NotFoundException('Billing record not found');
-        Object.assign(billing, data);
-        return billing;
+    async update(productCode: string, dto: UpdateBillingDto): Promise<Billing> {
+        const billing = await this.billingRepo.findOneBy({ productCode });
+        if (!billing) throw new NotFoundException();
+        Object.assign(billing, dto);
+        return this.billingRepo.save(billing);
     }
 
-    delete(productCode: string): void {
-        const index = this.billings.findIndex((b) => b.productCode === productCode);
-        if (index === -1) throw new NotFoundException('Billing record not found');
-        this.billings.splice(index, 1);
+    async delete(productCode: string): Promise<void> {
+        const result = await this.billingRepo.delete({ productCode });
+        if (result.affected === 0) throw new NotFoundException();
     }
 }

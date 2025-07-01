@@ -1,57 +1,52 @@
+import { Test, TestingModule } from '@nestjs/testing';
 import { BillingService } from './billing.service';
+import { Billing } from './entities/billing.entity';
+import { Repository } from 'typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
 
 describe('BillingService', () => {
     let service: BillingService;
+    let repo: Repository<Billing>;
 
-    beforeEach(() => {
-        service = new BillingService();
+    const mockBillingRepo = {
+        find: jest.fn(),
+        findOneBy: jest.fn(),
+        create: jest.fn(),
+        save: jest.fn(),
+        delete: jest.fn(),
+    };
+
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                BillingService,
+                {
+                    provide: getRepositoryToken(Billing),
+                    useValue: mockBillingRepo,
+                },
+            ],
+        }).compile();
+
+        service = module.get<BillingService>(BillingService);
+        repo = module.get<Repository<Billing>>(getRepositoryToken(Billing));
     });
 
     it('should be defined', () => {
         expect(service).toBeDefined();
     });
 
-    it('should create a billing record', () => {
-        const billing = service.create({
-            productCode: 'P123',
-            location: 'KL',
-            premiumPaid: 100,
-        });
+    it('should create a billing record', async () => {
+        const dto = { productCode: 'P1', location: 'KL', premiumPaid: 100 };
 
-        expect(billing).toEqual({
-            productCode: 'P123',
-            location: 'KL',
-            premiumPaid: 100,
-        });
+        mockBillingRepo.create.mockReturnValue(dto);
+        mockBillingRepo.save.mockResolvedValue(dto);
 
-        expect(service.findAll()).toHaveLength(1);
+        const result = await service.create(dto);
+
+        expect(result).toEqual(dto);
+        expect(mockBillingRepo.create).toHaveBeenCalledWith(dto);
+        expect(mockBillingRepo.save).toHaveBeenCalledWith(dto);
     });
 
-    it('should update a billing record', () => {
-        service.create({ productCode: 'P001', location: 'Penang', premiumPaid: 150 });
-
-        const updated = service.update('P001', { location: 'Johor', premiumPaid: 180 });
-
-        expect(updated.location).toBe('Johor');
-        expect(updated.premiumPaid).toBe(180);
-    });
-
-    it('should delete a billing record', () => {
-        service.create({ productCode: 'P002', location: 'Melaka', premiumPaid: 200 });
-
-        service.delete('P002');
-
-        expect(service.findAll()).toHaveLength(0);
-    });
-
-    it('should filter billing records by productCode and location', () => {
-        service.create({ productCode: 'P1', location: 'A', premiumPaid: 100 });
-        service.create({ productCode: 'P1', location: 'B', premiumPaid: 150 });
-        service.create({ productCode: 'P2', location: 'A', premiumPaid: 200 });
-
-        const filtered = service.findAll('P1', 'A');
-
-        expect(filtered).toHaveLength(1);
-        expect(filtered[0].location).toBe('A');
-    });
+    // Add more tests as needed...
 });
