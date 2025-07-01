@@ -1,36 +1,35 @@
 # 💳 Customer Billing Portal API
 
-This is a simple NestJS REST API for managing billing records, backed by a PostgreSQL database using TypeORM.
+A NestJS-based REST API for managing billing records, powered by PostgreSQL and TypeORM. This project uses Docker for easy local setup.
 
 ---
 
 ## 🚀 Features
 
-- RESTful endpoints: `GET`, `POST`, `PUT`, `DELETE /billing`
-- Role-based access control (admin required for create/update/delete)
+- RESTful billing endpoints (`GET`, `POST`, `PUT`, `DELETE /billing`)
+- Role-based access (admin required for write operations)
+- PostgreSQL 15 (Dockerized)
+- TypeORM for DB access
+- DTO validation with class-validator
 - Swagger documentation (`/api`)
-- PostgreSQL integration with TypeORM
-- DTO validation via `class-validator`
 - Unit tests for service and controller
 
 ---
 
-## 🛠 Technologies
+## 🐳 Docker-Based Setup
 
-- [NestJS](https://nestjs.com/)
-- [TypeORM](https://typeorm.io/)
-- [PostgreSQL](https://www.postgresql.org/)
-- [Swagger](https://swagger.io/)
-- [Jest](https://jestjs.io/)
+### ✅ Prerequisites
+
+- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/install/) installed
 
 ---
 
-## 📦 Installation
+### ✅ Quick Start
 
 ```bash
-# Clone the repo
+# Clone and navigate into the project folder
 git clone <your-repo-url>
-cd <project-folder>
+cd your-project
 
-# Install dependencies
-npm install
+# Start PostgreSQL and NestJS app using Docker
+docker-compose up --build
